@@ -32,7 +32,16 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 export default {
-  solidity: "0.8.4",
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.0",
+      },
+      {
+        version: "0.6.5",
+      },
+    ],
+  },
   networks: {
     ropsten: {
       url: `https://ropsten.infura.io/v3/${INFURA_KEY}`,
