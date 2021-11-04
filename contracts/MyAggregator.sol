@@ -677,16 +677,16 @@ contract MyAggregator is AggregatorV2V3Interface, Owned {
 
     if (_queriedRoundId > 0) {
       Round storage round = rounds[_queriedRoundId];
-      RoundDetails storage details = details[_queriedRoundId];
+      RoundDetails storage _details = details[_queriedRoundId];
       return (
         eligibleForSpecificRound(_oracle, _queriedRoundId),
         _queriedRoundId,
         oracles[_oracle].latestSubmission,
         round.startedAt,
-        details.timeout,
+        _details.timeout,
         recordedFunds.available,
         oracleCount(),
-        (round.startedAt > 0 ? details.paymentAmount : paymentAmount)
+        (round.startedAt > 0 ? _details.paymentAmount : paymentAmount)
       );
     } else {
       return oracleRoundStateSuggestRound(_oracle);
