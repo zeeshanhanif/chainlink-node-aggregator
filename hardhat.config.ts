@@ -3,6 +3,7 @@ import "@nomiclabs/hardhat-waffle";
 import '@typechain/hardhat'
 import '@nomiclabs/hardhat-ethers'
 import dotenv from 'dotenv';
+import 'hardhat-contract-sizer';
 
 dotenv.config();
 
@@ -41,6 +42,12 @@ export default {
         version: "0.6.6",
       },
     ],
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 10,
+      },
+    },
   },
   networks: {
     ropsten: {
@@ -51,5 +58,11 @@ export default {
       url: `https://rinkeby.infura.io/v3/${INFURA_KEY}`,
       accounts: [`0x${RINKEBY_PRIVATE_KEY}`]
     }
-  }
+  },
+  contractSizer: {
+    alphaSort: true,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: true,
+  },
 };
