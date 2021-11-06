@@ -7,7 +7,7 @@ import "@chainlink/contracts/src/v0.6/Owned.sol";
 import "@chainlink/contracts/src/v0.6/SafeMath128.sol";
 import "@chainlink/contracts/src/v0.6/SafeMath32.sol";
 import "@chainlink/contracts/src/v0.6/SafeMath64.sol";
-import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV2V3Interface.sol";
+import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorValidatorInterface.sol";
 import "@chainlink/contracts/src/v0.6/interfaces/LinkTokenInterface.sol";
 import "@chainlink/contracts/src/v0.6/vendor/SafeMathChainlink.sol";
@@ -20,7 +20,7 @@ import "@chainlink/contracts/src/v0.6/vendor/SafeMathChainlink.sol";
  * single answer. The latest aggregated answer is exposed as well as historical
  * answers and their updated at timestamp.
  */
-contract MyAggregator is AggregatorV2V3Interface, Owned {
+contract MyAggregator is AggregatorV3Interface, Owned {
   using SafeMathChainlink for uint256;
   using SafeMath128 for uint128;
   using SafeMath64 for uint64;
@@ -141,6 +141,20 @@ contract MyAggregator is AggregatorV2V3Interface, Owned {
   event ValidatorUpdated(
     address indexed previous,
     address indexed current
+  );
+
+  // From AggregatorInterface
+  event AnswerUpdated(
+    int256 indexed current,
+    uint256 indexed roundId,
+    uint256 updatedAt
+  );
+
+  // From AggregatorInterface
+  event NewRound(
+    uint256 indexed roundId,
+    address indexed startedBy,
+    uint256 startedAt
   );
 
   /**
@@ -331,104 +345,6 @@ contract MyAggregator is AggregatorV2V3Interface, Owned {
    */
   function getOracles() external view returns (address[] memory) {
     return oracleAddresses;
-  }
-
-  /**
-   * @notice get the most recently reported answer
-   *
-   * @dev #[deprecated] Use latestRoundData instead. This does not error if no
-   * answer has been reached, it will simply return 0. Either wait to point to
-   * an already answered Aggregator or use the recommended latestRoundData
-   * instead which includes better verification information.
-   */
-  function latestAnswer()
-    public
-    view
-    virtual
-    override
-    returns (int256)
-  {
-    return rounds[latestRoundId].answer;
-  }
-
-  /**
-   * @notice get the most recent updated at timestamp
-   *
-   * @dev #[deprecated] Use latestRoundData instead. This does not error if no
-   * answer has been reached, it will simply return 0. Either wait to point to
-   * an already answered Aggregator or use the recommended latestRoundData
-   * instead which includes better verification information.
-   */
-  function latestTimestamp()
-    public
-    view
-    virtual
-    override
-    returns (uint256)
-  {
-    return rounds[latestRoundId].updatedAt;
-  }
-
-  /**
-   * @notice get the ID of the last updated round
-   *
-   * @dev #[deprecated] Use latestRoundData instead. This does not error if no
-   * answer has been reached, it will simply return 0. Either wait to point to
-   * an already answered Aggregator or use the recommended latestRoundData
-   * instead which includes better verification information.
-   */
-  function latestRound()
-    public
-    view
-    virtual
-    override
-    returns (uint256)
-  {
-    return latestRoundId;
-  }
-
-  /**
-   * @notice get past rounds answers
-   * @param _roundId the round number to retrieve the answer for
-   *
-   * @dev #[deprecated] Use getRoundData instead. This does not error if no
-   * answer has been reached, it will simply return 0. Either wait to point to
-   * an already answered Aggregator or use the recommended getRoundData
-   * instead which includes better verification information.
-   */
-  function getAnswer(uint256 _roundId)
-    public
-    view
-    virtual
-    override
-    returns (int256)
-  {
-    if (validRoundId(_roundId)) {
-      return rounds[uint32(_roundId)].answer;
-    }
-    return 0;
-  }
-
-  /**
-   * @notice get timestamp when an answer was last updated
-   * @param _roundId the round number to retrieve the updated timestamp for
-   *
-   * @dev #[deprecated] Use getRoundData instead. This does not error if no
-   * answer has been reached, it will simply return 0. Either wait to point to
-   * an already answered Aggregator or use the recommended getRoundData
-   * instead which includes better verification information.
-   */
-  function getTimestamp(uint256 _roundId)
-    public
-    view
-    virtual
-    override
-    returns (uint256)
-  {
-    if (validRoundId(_roundId)) {
-      return rounds[uint32(_roundId)].updatedAt;
-    }
-    return 0;
   }
 
   /**
