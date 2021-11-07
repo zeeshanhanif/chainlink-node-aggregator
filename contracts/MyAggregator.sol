@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: MIT
-//pragma solidity ^0.6.0;
-pragma solidity >0.6.0 <=0.8.9;
+pragma solidity ^0.8.0;
+//pragma solidity >0.6.0 <=0.8.9;
 
-import "@chainlink/contracts/src/v0.6/Median.sol";
-import "@chainlink/contracts/src/v0.6/Owned.sol";
-import "@chainlink/contracts/src/v0.6/SafeMath128.sol";
-import "@chainlink/contracts/src/v0.6/SafeMath32.sol";
-import "@chainlink/contracts/src/v0.6/SafeMath64.sol";
-import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
-import "@chainlink/contracts/src/v0.6/interfaces/AggregatorValidatorInterface.sol";
-import "@chainlink/contracts/src/v0.6/interfaces/LinkTokenInterface.sol";
-import "@chainlink/contracts/src/v0.6/vendor/SafeMathChainlink.sol";
+//import "@chainlink/contracts/src/v0.6/Median.sol";
+import "./Median.sol";
+//import "@chainlink/contracts/src/v0.6/Owned.sol";
+import "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorValidatorInterface.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 
 /**
  * @title The Prepaid Aggregator contract
@@ -20,11 +18,18 @@ import "@chainlink/contracts/src/v0.6/vendor/SafeMathChainlink.sol";
  * single answer. The latest aggregated answer is exposed as well as historical
  * answers and their updated at timestamp.
  */
-contract MyAggregator is AggregatorV3Interface, Owned {
-  using SafeMathChainlink for uint256;
-  using SafeMath128 for uint128;
-  using SafeMath64 for uint64;
-  using SafeMath32 for uint32;
+
+ // Converted all contracts to 0.8 version of chainlink
+ // Commented out following methods to bring contract under 24kb limit
+ // 1) getOracles() and made oracleAddresses public variable
+ // 2) withdrawFunds()
+ // 3) transferAdmin()
+ // 4) acceptAdmin()
+ // Removed functions form AggregatorV2V3Interface and now using only AggregatorV3Interface 
+ // Made oracleAddresses public variable
+ // Changed Owned to ConfirmedOwner
+ // Removed all safemath methods as they are not needed after solidity 0.8.0
+contract MyAggregator is AggregatorV3Interface, ConfirmedOwner {
 
   struct Round {
     int256 answer;
@@ -81,13 +86,13 @@ contract MyAggregator is AggregatorV3Interface, Owned {
 
   uint256 constant public override version = 3;
 
-  /**
-   * @notice To ensure owner isn't withdrawing required funds as oracles are
-   * submitting updates, we enforce that the contract maintains a minimum
-   * reserve of RESERVE_ROUNDS * oracleCount() LINK earmarked for payment to
-   * oracles. (Of course, this doesn't prevent the contract from running out of
-   * funds without the owner's intervention.)
-   */
+  
+  // To ensure owner isn't withdrawing required funds as oracles are
+  // submitting updates, we enforce that the contract maintains a minimum
+  // reserve of RESERVE_ROUNDS * oracleCount() LINK earmarked for payment to
+  // oracles. (Of course, this doesn't prevent the contract from running out of
+  // funds without the owner's intervention.)
+
   uint256 constant private RESERVE_ROUNDS = 2;
   uint256 constant private MAX_ORACLE_COUNT = 77;
   uint32 constant private ROUND_MAX = 2**32-1;
@@ -102,7 +107,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
   mapping(uint32 => Round) internal rounds;
   mapping(uint32 => RoundDetails) internal details;
   mapping(address => Requester) internal requesters;
-  address[] private oracleAddresses;
+  address[] public oracleAddresses;
   Funds private recordedFunds;
 
   event AvailableFundsUpdated(
@@ -181,7 +186,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     int256 _maxSubmissionValue,
     uint8 _decimals,
     string memory _description
-  ) public {
+  ) ConfirmedOwner(msg.sender) {
     linkToken = LinkTokenInterface(_link);
     updateFutureRounds(_paymentAmount, 0, 0, 0, _timeout);
     setValidator(_validator);
@@ -189,7 +194,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     maxSubmissionValue = _maxSubmissionValue;
     decimals = _decimals;
     description = _description;
-    rounds[0].updatedAt = uint64(block.timestamp.sub(uint256(_timeout)));
+    rounds[0].updatedAt = uint64(block.timestamp - uint256(_timeout));
   }
 
   /**
@@ -243,7 +248,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     }
 
     require(_added.length == _addedAdmins.length, "need same oracle and admin count");
-    require(uint256(oracleCount()).add(_added.length) <= MAX_ORACLE_COUNT, "max oracles allowed");
+    require(uint256(oracleCount()) + _added.length <= MAX_ORACLE_COUNT, "max oracles allowed");
 
     for (uint256 i = 0; i < _added.length; i++) {
       addOracle(_added[i], _addedAdmins[i]);
@@ -325,7 +330,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
   {
     Funds memory funds = recordedFunds;
 
-    uint256 nowAvailable = linkToken.balanceOf(address(this)).sub(funds.allocated);
+    uint256 nowAvailable = linkToken.balanceOf(address(this)) - funds.allocated;
 
     if (funds.available != nowAvailable) {
       recordedFunds.available = uint128(nowAvailable);
@@ -343,9 +348,10 @@ contract MyAggregator is AggregatorV3Interface, Owned {
   /**
    * @notice returns an array of addresses containing the oracles on contract
    */
+   /*
   function getOracles() external view returns (address[] memory) {
     return oracleAddresses;
-  }
+  }*/
 
   /**
    * @notice get data about a round. Consumers are encouraged to check
@@ -457,8 +463,8 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     uint128 available = oracles[_oracle].withdrawable;
     require(available >= amount, "insufficient withdrawable funds");
 
-    oracles[_oracle].withdrawable = available.sub(amount);
-    recordedFunds.allocated = recordedFunds.allocated.sub(amount);
+    oracles[_oracle].withdrawable = available - amount;
+    recordedFunds.allocated = recordedFunds.allocated - amount;
 
     assert(linkToken.transfer(_recipient, uint256(amount)));
   }
@@ -468,15 +474,16 @@ contract MyAggregator is AggregatorV3Interface, Owned {
    * @param _recipient is the address to send the LINK to
    * @param _amount is the amount of LINK to send
    */
+   /*
   function withdrawFunds(address _recipient, uint256 _amount)
     external
     onlyOwner()
   {
     uint256 available = uint256(recordedFunds.available);
-    require(available.sub(requiredReserve(paymentAmount)) >= _amount, "insufficient reserve funds");
+    require(available - requiredReserve(paymentAmount) >= _amount, "insufficient reserve funds");
     require(linkToken.transfer(_recipient, _amount), "token transfer failed");
     updateAvailableFunds();
-  }
+  }*/
 
   /**
    * @notice get the admin address of an oracle
@@ -495,6 +502,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
    * @param _oracle is the address of the oracle whose admin is being transferred
    * @param _newAdmin is the new admin address
    */
+   /*
   function transferAdmin(address _oracle, address _newAdmin)
     external
   {
@@ -503,11 +511,12 @@ contract MyAggregator is AggregatorV3Interface, Owned {
 
     emit OracleAdminUpdateRequested(_oracle, msg.sender, _newAdmin);
   }
-
+*/
   /**
    * @notice accept the admin address transfer for an oracle
    * @param _oracle is the address of the oracle whose admin is being transferred
    */
+   /*
   function acceptAdmin(address _oracle)
     external
   {
@@ -517,7 +526,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
 
     emit OracleAdminUpdated(_oracle, msg.sender);
   }
-
+  */
   /**
    * @notice allows non-oracles to request a new round
    */
@@ -530,7 +539,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     uint32 current = reportingRoundId;
     require(rounds[current].updatedAt > 0 || timedOut(current), "prev round must be supersedable");
 
-    uint32 newRoundId = current.add(1);
+    uint32 newRoundId = current + 1 ;
     requesterInitializeNewRound(newRoundId);
     return newRoundId;
   }
@@ -634,7 +643,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
   function initializeNewRound(uint32 _roundId)
     private
   {
-    updateTimedOutRoundInfo(_roundId.sub(1));
+    updateTimedOutRoundInfo(_roundId - 1);
 
     reportingRoundId = _roundId;
     RoundDetails memory nextDetails = RoundDetails(
@@ -679,7 +688,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
   {
     if (!timedOut(_roundId)) return;
 
-    uint32 prevId = _roundId.sub(1);
+    uint32 prevId = _roundId - 1;
     rounds[_roundId].answer = rounds[prevId].answer;
     rounds[_roundId].answeredInRound = rounds[prevId].answeredInRound;
     rounds[_roundId].updatedAt = uint64(block.timestamp);
@@ -721,7 +730,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     // the shouldSupersede bool in the if condition pushes them towards
     // submitting in a currently open round.
     if (supersedable(reportingRoundId) && shouldSupersede) {
-      _roundId = reportingRoundId.add(1);
+      _roundId = reportingRoundId + 1;
       round = rounds[_roundId];
 
       _paymentAmount = paymentAmount;
@@ -764,7 +773,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     rounds[_roundId].answeredInRound = _roundId;
     latestRoundId = _roundId;
 
-    emit AnswerUpdated(newAnswer, _roundId, now);
+    emit AnswerUpdated(newAnswer, _roundId, block.timestamp);
 
     return (true, newAnswer);
   }
@@ -778,7 +787,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     AggregatorValidatorInterface av = validator; // cache storage reads
     if (address(av) == address(0)) return;
 
-    uint32 prevRound = _roundId.sub(1);
+    uint32 prevRound = _roundId - 1;
     uint32 prevAnswerRoundId = rounds[prevRound].answeredInRound;
     int256 prevRoundAnswer = rounds[prevRound].answer;
     // We do not want the validator to ever prevent reporting, so we limit its
@@ -796,10 +805,10 @@ contract MyAggregator is AggregatorV3Interface, Owned {
   {
     uint128 payment = details[_roundId].paymentAmount;
     Funds memory funds = recordedFunds;
-    funds.available = funds.available.sub(payment);
-    funds.allocated = funds.allocated.add(payment);
+    funds.available = funds.available - payment;
+    funds.allocated = funds.allocated + payment;
     recordedFunds = funds;
-    oracles[msg.sender].withdrawable = oracles[msg.sender].withdrawable.add(payment);
+    oracles[msg.sender].withdrawable = oracles[msg.sender].withdrawable + payment;
 
     emit AvailableFundsUpdated(funds.available);
   }
@@ -831,7 +840,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
   {
     uint64 startedAt = rounds[_roundId].startedAt;
     uint32 roundTimeout = details[_roundId].timeout;
-    return startedAt > 0 && roundTimeout > 0 && startedAt.add(roundTimeout) < block.timestamp;
+    return startedAt > 0 && roundTimeout > 0 && startedAt + roundTimeout < block.timestamp;
   }
 
   function getStartingRound(address _oracle)
@@ -843,7 +852,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     if (currentRound != 0 && currentRound == oracles[_oracle].endingRound) {
       return currentRound;
     }
-    return currentRound.add(1);
+    return currentRound + 1;
   }
 
   function previousAndCurrentUnanswered(uint32 _roundId, uint32 _rrId)
@@ -851,7 +860,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     view
     returns (bool)
   {
-    return _roundId.add(1) == _rrId && rounds[_rrId].updatedAt == 0;
+    return _roundId + 1 == _rrId && rounds[_rrId].updatedAt == 0;
   }
 
   function requiredReserve(uint256 payment)
@@ -859,7 +868,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     view
     returns (uint256)
   {
-    return payment.mul(oracleCount()).mul(RESERVE_ROUNDS);
+    return payment * oracleCount() * RESERVE_ROUNDS;
   }
 
   function addOracle(
@@ -890,8 +899,8 @@ contract MyAggregator is AggregatorV3Interface, Owned {
   {
     require(oracleEnabled(_oracle), "oracle not enabled");
 
-    oracles[_oracle].endingRound = reportingRoundId.add(1);
-    address tail = oracleAddresses[uint256(oracleCount()).sub(1)];
+    oracles[_oracle].endingRound = reportingRoundId + 1;
+    address tail = oracleAddresses[uint256(oracleCount()) - 1];
     uint16 index = oracles[_oracle].index;
     oracles[tail].index = index;
     delete oracles[_oracle].index;
@@ -914,8 +923,8 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     if (startingRound > _roundId) return "not yet enabled oracle";
     if (oracles[_oracle].endingRound < _roundId) return "no longer allowed oracle";
     if (oracles[_oracle].lastReportedRound >= _roundId) return "cannot report on previous rounds";
-    if (_roundId != rrId && _roundId != rrId.add(1) && !previousAndCurrentUnanswered(_roundId, rrId)) return "invalid round to report";
-    if (_roundId != 1 && !supersedable(_roundId.sub(1))) return "previous round not supersedable";
+    if (_roundId != rrId && _roundId != rrId + 1 && !previousAndCurrentUnanswered(_roundId, rrId)) return "invalid round to report";
+    if (_roundId != 1 && !supersedable(_roundId - 1)) return "previous round not supersedable";
   }
 
   function supersedable(uint32 _roundId)
@@ -956,7 +965,7 @@ contract MyAggregator is AggregatorV3Interface, Owned {
     view
     returns (bool)
   {
-    return _roundId == reportingRoundId.add(1);
+    return _roundId == reportingRoundId + 1;
   }
 
   function validRoundId(uint256 _roundId)
