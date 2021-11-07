@@ -7,7 +7,7 @@ library SignedSafeMath {
   /**
    * @dev Multiplies two signed integers, reverts on overflow.
    */
-  function mul(int256 a, int256 b) public pure returns (int256) {
+  function mul(int256 a, int256 b) internal pure returns (int256) {
     // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
     // benefit is lost if 'b' is also tested.
     // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
@@ -26,7 +26,7 @@ library SignedSafeMath {
   /**
    * @dev Integer division of two signed integers truncating the quotient, reverts on division by zero.
    */
-  function div(int256 a, int256 b) public pure returns (int256) {
+  function div(int256 a, int256 b) internal pure returns (int256) {
     require(b != 0, "SignedSafeMath: division by zero");
     require(!(b == -1 && a == _INT256_MIN), "SignedSafeMath: division overflow");
 
@@ -38,7 +38,7 @@ library SignedSafeMath {
   /**
    * @dev Subtracts two signed integers, reverts on overflow.
    */
-  function sub(int256 a, int256 b) public pure returns (int256) {
+  function sub(int256 a, int256 b) internal pure returns (int256) {
     int256 c = a - b;
     require((b >= 0 && c <= a) || (b < 0 && c > a), "SignedSafeMath: subtraction overflow");
 
@@ -48,7 +48,7 @@ library SignedSafeMath {
   /**
    * @dev Adds two signed integers, reverts on overflow.
    */
-  function add(int256 a, int256 b) public pure returns (int256) {
+  function add(int256 a, int256 b) internal pure returns (int256) {
     int256 c = a + b;
     require((b >= 0 && c >= a) || (b < 0 && c < a), "SignedSafeMath: addition overflow");
 
@@ -62,7 +62,7 @@ library SignedSafeMath {
    * avg(-3, -4) = -3
    */
   function avg(int256 _a, int256 _b)
-    public
+    internal
     pure
     returns (int256)
   {
