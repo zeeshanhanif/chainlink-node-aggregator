@@ -1,6 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { ethers, run } from 'hardhat';
-import { MyAggregator, MyAggregator__factory, Oracle, Oracle__factory } from '../typechain';
+import { Median, Median__factory, MyAggregator, MyAggregator__factory, Oracle, Oracle__factory } from '../typechain';
 
 async function main() {
   const accounts = await ethers.getSigners();
@@ -21,14 +21,22 @@ async function main() {
   await oracle1.setFulfillmentPermission(node1Address,true);
   await oracle2.setFulfillmentPermission(node2Address,true);
 
-  const Aggregator:MyAggregator__factory = await ethers.getContractFactory("MyAggregator");
+  const Median:Median__factory = await ethers.getContractFactory("Median");
+  const median:Median = await Median.deploy();
+
+  const Aggregator:MyAggregator__factory = await ethers.getContractFactory("MyAggregator",{
+    libraries: {
+      Median:median.address
+    }
+  });
+  // 0.1 link will be paid to each orcale when the submit result in each round
   const amount:BigNumber = BigNumber.from("100000000000000000"); // 0.1 link
   const aggregator:MyAggregator = await Aggregator.deploy(linkAddress,amount,500,"0x0000000000000000000000000000000000000000",2,2,18,"Reporting listeners");
   await aggregator.deployed();
 
-  aggregator.changeOracles([],[oracle1.address,oracle2.address],[accounts[0].address,accounts[0].address],2,3,1);
-  
-  
+  console.log("Aggregator deployed to:", aggregator.address);
+  const txt = await aggregator.changeOracles([],[oracle1.address,oracle2.address],[accounts[0].address,accounts[0].address],1,1,1);
+  console.log("changeOracles called :", txt.hash);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
