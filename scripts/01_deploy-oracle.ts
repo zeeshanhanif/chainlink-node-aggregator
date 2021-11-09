@@ -1,6 +1,8 @@
 import { BigNumber } from '@ethersproject/bignumber';
-import { ethers, run } from 'hardhat';
-import { Median, Median__factory, MyAggregator, MyAggregator__factory, Oracle, Oracle__factory } from '../typechain';
+import { ethers, fundLink, run } from 'hardhat';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { LinkTokenInterface, Median, Median__factory, MyAggregator, MyAggregator__factory, Oracle, Oracle__factory } from '../typechain';
+const hre:HardhatRuntimeEnvironment = require("hardhat");
 
 async function main() {
   const accounts = await ethers.getSigners();
@@ -24,6 +26,8 @@ async function main() {
   const Median:Median__factory = await ethers.getContractFactory("Median");
   const median:Median = await Median.deploy();
 
+  console.log("Median Library address: ",median.address);
+
   const Aggregator:MyAggregator__factory = await ethers.getContractFactory("MyAggregator",{
     libraries: {
       Median:median.address
@@ -31,12 +35,13 @@ async function main() {
   });
   // 0.1 link will be paid to each orcale when the submit result in each round
   const amount:BigNumber = BigNumber.from("100000000000000000"); // 0.1 link
-  const aggregator:MyAggregator = await Aggregator.deploy(linkAddress,amount,500,"0x0000000000000000000000000000000000000000",2,2,18,"Reporting listeners");
+  const aggregator:MyAggregator = await Aggregator.deploy(linkAddress,amount,500,"0x0000000000000000000000000000000000000000",0,10000,18,"Reporting listeners");
   await aggregator.deployed();
-
   console.log("Aggregator deployed to:", aggregator.address);
-  const txt = await aggregator.changeOracles([],[oracle1.address,oracle2.address],[accounts[0].address,accounts[0].address],1,1,1);
-  console.log("changeOracles called :", txt.hash);
+
+  
+  //const txt = await aggregator.changeOracles([],[oracle1.address,oracle2.address],[accounts[0].address,accounts[0].address],1,1,1);
+  //console.log("changeOracles called :", txt.hash);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
