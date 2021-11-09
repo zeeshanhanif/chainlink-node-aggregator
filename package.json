@@ -10,6 +10,7 @@
   "author": "Zeeshan Hanif",
   "license": "ISC",
   "devDependencies": {
+    "@appliedblockchain/chainlink-plugins-fund-link": "0.0.3",
     "@chainlink/contracts": "^0.2.2",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",

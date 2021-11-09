@@ -4,6 +4,7 @@ import '@typechain/hardhat'
 import '@nomiclabs/hardhat-ethers'
 import dotenv from 'dotenv';
 import 'hardhat-contract-sizer';
+import "@appliedblockchain/chainlink-plugins-fund-link";
 
 dotenv.config();
 
