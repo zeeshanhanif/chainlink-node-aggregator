@@ -1,24 +1,17 @@
 # Chainlink Node Aggregator
 Repository Setup and Run Chainlink Node Aggregator
 
+1) Create Chainlink Nodes
+2) Deploy Oracle and Address of Node in Oracle to call Fulfillment function
+3) Deploy Median Library
+4) Deploy Aggregator with Median Library
+5) Add Links fund to Aggregator
+6) Call updateAvailableFunds of Aggregator to make funding available for payment
+7) Call changeOracle function to add Oracles in Aggregator
+
+
 
 For TypeScript Configuration use this [link](https://hardhat.org/guides/typescript.html)
-
-Below command will compile the contract and generates Typescript typings for contracts
-```shell
-npx hardhat compile
-```
-
-Below command will run TypeScript compiler and convert all TypeScript files to JS and placed them in dist folder
-```shell
-tsc
-```
-
-Below command will deploy contracts on hardhat network
-```shell
-npx hardhat run dist/scripts/sample-script.js
-```
-
 
 Try running some of the following tasks:
 
