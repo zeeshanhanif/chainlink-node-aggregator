@@ -5,10 +5,10 @@ const hre:HardhatRuntimeEnvironment = require("hardhat");
 
 async function main() {
   const accounts = await ethers.getSigners();
-  const linkAddress:string = "0x01BE23585060835E02B77ef475b0Cc51aA1e0709";
+  const linkAddress:string = "0xa36085F69e2889c224210F603D836748e7dC0088";
   
   const Median:Median__factory = await ethers.getContractFactory("Median");
-  const median:Median = await Median.attach("0x831884a02fac4F0d6dBFA4C14a7D5834211b7762");
+  const median:Median = await Median.attach("0xfA11EDfCaB1C093A489650076be689953eb35670");
 
   const Aggregator:MyAggregator__factory = await ethers.getContractFactory("MyAggregator",{
     libraries: {
@@ -16,11 +16,11 @@ async function main() {
     }
   });
   
-  const aggregator:MyAggregator = await Aggregator.attach("0xAFE14D93e156CcCBca754d205A9ea925510ff127");
+  const aggregator:MyAggregator = await Aggregator.attach("0xbeD8c7C6c33B9760aE6Df7936e74b88aE4D93504");
 
   // Add Fund
-  await fundLink(hre,aggregator.address,"1000000000000000000");
-  console.log("Funding Added to Aggregator");
+  //await fundLink(hre,aggregator.address,"10000000000000000000");
+  //console.log("Funding Added to Aggregator");
 
   const linkToken = LinkTokenInterface__factory.connect(linkAddress,accounts[0]);
   console.log("link token add ", (await linkToken.balanceOf(aggregator.address)).toString());
