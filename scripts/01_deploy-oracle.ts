@@ -6,9 +6,10 @@ const hre:HardhatRuntimeEnvironment = require("hardhat");
 
 async function main() {
   const accounts = await ethers.getSigners();
-  const linkAddress:string = "0x01BE23585060835E02B77ef475b0Cc51aA1e0709";
-  const node1Address:string = "0x36EeADa5b51C54aA07D7E62424DAFA0910f1D368";
-  const node2Address:string = "0xc0DC001E854A88aeBdcA7B835157aEbB3279d7Cc";
+  // Kovan
+  const linkAddress:string = "0xa36085F69e2889c224210F603D836748e7dC0088";
+  //const node1Address:string = "";
+  const node2Address:string = "0x5639aeBE579E90a4805a132c77f9EbEe6852c115";
   
   const Oracle:Oracle__factory = await ethers.getContractFactory("Oracle");
   
@@ -20,7 +21,7 @@ async function main() {
 
   console.log("Oracle 1 deployed to:", oracle1.address);
   console.log("Oracle 2 deployed to:", oracle2.address);
-  await oracle1.setFulfillmentPermission(node1Address,true);
+  //await oracle1.setFulfillmentPermission(node1Address,true);
   await oracle2.setFulfillmentPermission(node2Address,true);
 
   const Median:Median__factory = await ethers.getContractFactory("Median");
