@@ -62,7 +62,7 @@ export default {
     }
     ,
     kovan: {
-      url: `https://rinkeby.infura.io/v3/${INFURA_KEY}`,
+      url: `https://kovan.infura.io/v3/${INFURA_KEY}`,
       accounts: [`0x${KOVAN_PRIVATE_KEY}`]
     }
   },
