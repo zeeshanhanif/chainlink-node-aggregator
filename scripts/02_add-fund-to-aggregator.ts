@@ -8,7 +8,7 @@ async function main() {
   const linkAddress:string = "0xa36085F69e2889c224210F603D836748e7dC0088";
   
   const Median:Median__factory = await ethers.getContractFactory("Median");
-  const median:Median = await Median.attach("0xfA11EDfCaB1C093A489650076be689953eb35670");
+  const median:Median = await Median.attach("0x899C94BE103fB99C39c055940893e7F89b3d35Fc");
 
   const Aggregator:MyAggregator__factory = await ethers.getContractFactory("MyAggregator",{
     libraries: {
@@ -16,13 +16,14 @@ async function main() {
     }
   });
   
-  const aggregator:MyAggregator = await Aggregator.attach("0xbeD8c7C6c33B9760aE6Df7936e74b88aE4D93504");
+  const aggregator:MyAggregator = await Aggregator.attach("0xEfD0EA2567cF317a7fC25d5C6512E53de337FF35");
 
   // Add Fund
-  //await fundLink(hre,aggregator.address,"10000000000000000000");
-  //console.log("Funding Added to Aggregator");
+  await fundLink(hre,aggregator.address,"10000000000000000000");
+  console.log("Funding Added to Aggregator");
 
   const linkToken = LinkTokenInterface__factory.connect(linkAddress,accounts[0]);
+  console.log("After linktoken");
   console.log("link token add ", (await linkToken.balanceOf(aggregator.address)).toString());
   
 }
