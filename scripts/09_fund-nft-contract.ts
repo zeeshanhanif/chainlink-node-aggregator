@@ -9,9 +9,9 @@ async function main() {
   const linkAddress:string = "0xa36085F69e2889c224210F603D836748e7dC0088";
   
   const DynamicNFT:DynamicNFT__factory = await ethers.getContractFactory("DynamicNFT");
-  const dynamicNft:DynamicNFT = await DynamicNFT.attach("0x77d6633fe2f09d765A133d5634680193af978A86");
+  const dynamicNft:DynamicNFT = await DynamicNFT.attach("0xA1fA4D130ec0ff62dC017f14EC237651b6a33DAE");
 
-  await fundLink(hre,dynamicNft.address,"1000000000000000000"); // 1 Links
+  await fundLink(hre,dynamicNft.address,"5000000000000000000"); // 5 Links
   console.log("Funding Added to DynamicNFT");
 
   const linkToken = LinkTokenInterface__factory.connect(linkAddress,accounts[0]);
